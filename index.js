@@ -16,11 +16,20 @@ const connection = mysql2
 
 app.use(cors());
 
-app.get("/birds", (req, res) => {
+app.get("/birds/:sort", (req, res) => {
+  let sortType;
+  switch (req.params.sort) {
+    case "ASC":
+      sortType = "ASC";
+      break;
+    case "DESC":
+      sortType = "DESC";
+      break;
+  }
+  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle, shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description FROM birdSpecies JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus ORDER BY speciesName ${sortType};`;
+
   connection
-    .query(
-      "SELECT idSpecies as num, speciesName as title, internationalName as interTitle, shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description FROM birdSpecies JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus;"
-    )
+    .query(sql)
     .then((result) => {
       res.json(result[0]);
     })
@@ -29,12 +38,20 @@ app.get("/birds", (req, res) => {
     });
 });
 
-app.get("/birds/:bird", (req, res) => {
+app.get("/birds/:bird/:sort", (req, res) => {
+  let sortType;
+  switch (req.params.sort) {
+    case "ASC":
+      sortType = "ASC";
+      break;
+    case "DESC":
+      sortType = "DESC";
+      break;
+  }
+  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle, shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description FROM birdSpecies JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus WHERE LOWER(speciesName) REGEXP LOWER(?) ORDER BY speciesName ${sortType};`;
+
   connection
-    .query(
-      "SELECT idSpecies as num, speciesName as title, internationalName as interTitle, shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description FROM birdSpecies JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus WHERE LOWER(speciesName) REGEXP LOWER(?);",
-      req.params.bird
-    )
+    .query(sql, req.params.bird)
     .then((result) => {
       res.json(result[0]);
     })
