@@ -5,6 +5,13 @@ const bodyParser = require("body-parser");
 const app = express();
 const port = 3000;
 
+const path = require("path");
+const backupFilePath = path.join(__dirname, "backup.txt");
+const receiptFilePath = path.join(__dirname, "receipt.docx");
+const fs = require("fs");
+const backupStream = fs.createWriteStream(backupFilePath, { flags: "w" });
+const receiptStream = fs.createWriteStream(receiptFilePath, { flags: "w" });
+
 const connection = mysql2
   .createConnection({
     host: "localhost",
@@ -19,6 +26,27 @@ const connection = mysql2
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
 app.use(cors());
+
+// бэкап
+app.get("/backup", (req, res) => {
+  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle,
+  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
+  FROM birdSpecies
+  JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+  JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+  ORDER BY idSpecies;`;
+
+  connection
+    .query(sql)
+    .then((result) => {
+      res.json(result[0]);
+      const backup = JSON.stringify(result[0]);
+      backupStream.write(backup);
+    })
+    .catch((err) => {
+      res.json(err);
+    });
+});
 
 // получение всех птиц с сортировкой
 app.get("/birds/:sort", (req, res) => {
@@ -138,6 +166,8 @@ app.post("/donate", (req, res) => {
     .query(sql)
     .then((result) => {
       res.json(result[0]);
+      const receipt = `Чек пользователя ${nickname}\n`;
+      receiptStream.write(receipt);
     })
     .catch((err) => {
       res.json(err);
