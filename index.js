@@ -1,3 +1,12 @@
+const {
+  Document,
+  Packer,
+  Paragraph,
+  AlignmentType,
+  HeadingLevel,
+  TextRun,
+} = require("docx");
+
 const express = require("express");
 const cors = require("cors");
 const mysql2 = require("mysql2");
@@ -42,6 +51,23 @@ app.get("/backup", (req, res) => {
       res.json(result[0]);
       const backup = JSON.stringify(result[0]);
       backupStream.write(backup);
+    })
+    .catch((err) => {
+      res.json(err);
+    });
+});
+
+// топ-3 юзеров
+app.get("/rating", (req, res) => {
+  const sql = `SELECT DISTINCT userName as user, donateAmount as amount FROM donates
+  JOIN users ON donates.idUser = users.idUser
+  ORDER BY donateAmount DESC
+  LIMIT 3;`;
+
+  connection
+    .query(sql)
+    .then((result) => {
+      res.json(result[0]);
     })
     .catch((err) => {
       res.json(err);
@@ -166,12 +192,61 @@ app.post("/donate", (req, res) => {
     .query(sql)
     .then((result) => {
       res.json(result[0]);
-      const receipt = `Чек пользователя ${nickname}\n`;
-      receiptStream.write(receipt);
     })
     .catch((err) => {
       res.json(err);
     });
+
+  const doc = new Document({
+    sections: [
+      {
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Чек пользователя ",
+                bold: true,
+              }),
+              new TextRun({
+                text: nickname.toString(),
+                italics: true,
+              }),
+            ],
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            children: [new TextRun("на сумму " + amount.toString() + " USD,")],
+            heading: HeadingLevel.HEADING_2,
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            children: [
+              new TextRun(
+                "отправленную видам под следующими индексами: " +
+                  speciesStr.toString() +
+                  ","
+              ),
+            ],
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            children: [
+              new TextRun(
+                "находящимся в заповеднике с индексом " + preserveId.toString()
+              ),
+            ],
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      },
+    ],
+  });
+  Packer.toBuffer(doc).then((buffer) => {
+    fs.writeFileSync("receipt.docx", buffer);
+  });
 });
 
 // отправка нового вида птиц в бд
