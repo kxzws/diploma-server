@@ -26,7 +26,8 @@ CREATE TABLE protectionStatus (
 	idPrS int PRIMARY KEY NOT NULL AUTO_INCREMENT,
     shortName varchar(20) NOT NULL,
     longName varchar(100) NOT NULL,
-    description varchar(256)
+    description varchar(256),
+    maintenanceCost double NOT NULL
 );
 
 CREATE TABLE birdSpecies ( -- хранит виды птиц
@@ -50,7 +51,11 @@ CREATE TABLE preserves ( -- хранит заповедники
     presOwner varchar(50) NOT NULL,
     area int NOT NULL, -- тыс. гектаров
     foundYear int,
-    address varchar(100) NOT NULL
+    address varchar(100) NOT NULL,
+    staffQty int NOT NULL,
+    staffPersonCost double NOT NULL,
+    speciesRepresQty int NOT NULL,
+    annualStateBudget double NOT NULL
 );
 
 CREATE TABLE preserves2birdSpecies (
