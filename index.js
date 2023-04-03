@@ -50,20 +50,20 @@ app.get("/birds/:sort", getAllBirds);
 app.get("/birds/:bird/:sort", getSearchedBirds);
 app.get("/genuses", getBirdsGenuses);
 app.get("/statuses", getBirdsStatuses);
-app.get("/donate", donateToBirds);
-app.get("/add-species", addBirdSpecies);
-app.get("/delete-species/:id", deleteBirdSpecies);
+app.post("/donate", donateToBirds);
+app.post("/add-species", addBirdSpecies);
+app.delete("/delete-species/:id", deleteBirdSpecies);
 
-app.use("/preserves", getAllPreserves);
+app.get("/preserves", getAllPreserves);
 
-app.use("/register", registerUser);
-app.use("/login", loginUser);
+app.post("/register", registerUser);
+app.post("/login", loginUser);
 
-app.use("/backup", makeBackup);
+app.get("/backup", makeBackup);
 
-app.use("/finance", getFinances);
+app.get("/finance", getFinances);
 
-app.use("/rating", getRating);
+app.get("/rating", getRating);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

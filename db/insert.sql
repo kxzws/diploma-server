@@ -56,3 +56,5 @@ INSERT INTO preserves2birdSpecies (idSpecies, idPres) -- все птицы ес�
 (SELECT idSpecies, idPres FROM birdSpecies
 JOIN preserves);
 SELECT * FROM preserves2birdSpecies;
+
+SELECT * FROM donates;

@@ -67,7 +67,7 @@ CREATE TABLE donates (
 	idUser int NOT NULL,
     idPreserves2birdSpecies int NOT NULL,
     donateDate datetime NOT NULL,
-    donateAmount int NOT NULL,
+    donateAmount double NOT NULL,
     FOREIGN KEY (idUser)
 		REFERENCES users (idUser),
 	FOREIGN KEY (idPreserves2birdSpecies)
