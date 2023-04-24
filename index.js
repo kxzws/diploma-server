@@ -46,8 +46,8 @@ app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-
 app.use(bodyParser.json()); // parse application/json
 app.use(cors());
 
-app.get("/birds/:sort", getAllBirds);
-app.get("/birds/:bird/:sort", getSearchedBirds);
+app.get("/birds/:pres/:sort", getAllBirds);
+app.get("/birds/:bird/:pres/:sort", getSearchedBirds);
 app.get("/genuses", getBirdsGenuses);
 app.get("/statuses", getBirdsStatuses);
 app.post("/donate", donateToBirds);

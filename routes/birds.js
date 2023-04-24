@@ -8,12 +8,16 @@ import { connection } from "../index.js";
 // получение всех птиц с сортировкой
 export const getAllBirds = (req, res) => {
   const sortType = req.params.sort === "ASC" ? "ASC" : "DESC";
+  const { pres } = req.params;
 
-  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle,
+  const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
   shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
   JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+  JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
+  JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+  WHERE preserves.idPres = ${pres}
   ORDER BY speciesName ${sortType};`;
 
   connection
@@ -29,13 +33,16 @@ export const getAllBirds = (req, res) => {
 // получение конкретных птиц по поиску с сортировкой
 export const getSearchedBirds = (req, res) => {
   const sortType = req.params.sort === "ASC" ? "ASC" : "DESC";
+  const { pres } = req.params;
 
-  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle,
+  const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
   shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
   JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
-  WHERE LOWER(speciesName) REGEXP LOWER(?)
+  JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
+  JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+  WHERE LOWER(speciesName) REGEXP LOWER(?) AND preserves.idPres = ${pres}
   ORDER BY speciesName ${sortType};`;
 
   connection

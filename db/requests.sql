@@ -1,7 +1,10 @@
 -- все птицы
-SELECT idSpecies, speciesName, internationalName, shortName, weight, wingspan, birdSpecies.description FROM birdSpecies
+SELECT birdSpecies.idSpecies, speciesName, internationalName, shortName, weight, wingspan, birdSpecies.description FROM birdSpecies
 JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
 JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
+JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+WHERE preserves.idPres = 1
 ORDER BY speciesName ASC;
 
 
