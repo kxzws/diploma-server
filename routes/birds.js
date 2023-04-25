@@ -7,16 +7,27 @@ import { connection } from "../index.js";
 
 // получение всех птиц с сортировкой
 export const getAllBirds = (req, res) => {
-  const sortType = req.params.sort === "ASC" ? "ASC" : "DESC";
+  const sortType = req.params.sort === "DESC" ? "DESC" : "ASC";
   const { pres } = req.params;
 
   const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
-  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
+  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+  protectionStatus.maintenanceCost as protectStatusCost, a.presName, preserves.speciesRepresQty as speciesRepresQty,
+  a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
   JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
   JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
   JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+  CROSS JOIN (
+    SELECT preserves.idPres, preserves.presName, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, 
+    staffQty * staffPersonCost as staffCost, SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
+    LEFT JOIN preserves2birdSpecies ON preserves2birdSpecies.idPres = preserves.idPres
+    LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
+    LEFT JOIN birdSpecies ON birdSpecies.idSpecies = preserves2birdSpecies.idSpecies
+    LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+    GROUP BY presName
+    ) as a ON a.idPres = preserves.idPres
   WHERE preserves.idPres = ${pres}
   ORDER BY speciesName ${sortType};`;
 
@@ -32,16 +43,27 @@ export const getAllBirds = (req, res) => {
 
 // получение конкретных птиц по поиску с сортировкой
 export const getSearchedBirds = (req, res) => {
-  const sortType = req.params.sort === "ASC" ? "ASC" : "DESC";
+  const sortType = req.params.sort === "DESC" ? "DESC" : "ASC";
   const { pres } = req.params;
 
   const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
-  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
+  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+  protectionStatus.maintenanceCost as protectStatusCost, a.presName, preserves.speciesRepresQty as speciesRepresQty,
+  a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
   JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
   JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
   JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+  CROSS JOIN (
+    SELECT preserves.idPres, preserves.presName, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, 
+    staffQty * staffPersonCost as staffCost, SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
+    LEFT JOIN preserves2birdSpecies ON preserves2birdSpecies.idPres = preserves.idPres
+    LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
+    LEFT JOIN birdSpecies ON birdSpecies.idSpecies = preserves2birdSpecies.idSpecies
+    LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+    GROUP BY presName
+    ) as a ON a.idPres = preserves.idPres
   WHERE LOWER(speciesName) REGEXP LOWER(?) AND preserves.idPres = ${pres}
   ORDER BY speciesName ${sortType};`;
 
@@ -59,11 +81,24 @@ export const getSearchedBirds = (req, res) => {
 export const getBirdByNum = (req, res) => {
   const { num } = req.params;
 
-  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle,
-  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
+  const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
+  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+  protectionStatus.maintenanceCost as protectStatusCost, a.presName, preserves.speciesRepresQty as speciesRepresQty,
+  a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
   JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+  JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
+  JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+  CROSS JOIN (
+    SELECT preserves.idPres, preserves.presName, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, 
+    staffQty * staffPersonCost as staffCost, SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
+    LEFT JOIN preserves2birdSpecies ON preserves2birdSpecies.idPres = preserves.idPres
+    LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
+    LEFT JOIN birdSpecies ON birdSpecies.idSpecies = preserves2birdSpecies.idSpecies
+    LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+    GROUP BY presName
+    ) as a ON a.idPres = preserves.idPres
   WHERE birdSpecies.idSpecies = ${num};`;
 
   connection

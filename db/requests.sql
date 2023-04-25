@@ -1,5 +1,9 @@
 -- все птицы
-SELECT birdSpecies.idSpecies, speciesName, internationalName, shortName, weight, wingspan, birdSpecies.description FROM birdSpecies
+SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
+shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+protectionStatus.maintenanceCost as protectStatusCost, preserves.speciesRepresQty as speciesRepresQty,
+preserves.annualStateBudget as presAnnualBudget
+FROM birdSpecies
 JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
 JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
 JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
@@ -70,3 +74,54 @@ SELECT DISTINCT userName as user, donateAmount as amount FROM donates
 JOIN users ON donates.idUser = users.idUser
 ORDER BY donateAmount DESC
 LIMIT 3;
+
+-- финансовая статистика
+SELECT preserves.idPres, presName, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, staffQty * staffPersonCost as staffCost,
+SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
+LEFT JOIN preserves2birdSpecies ON preserves2birdSpecies.idPres = preserves.idPres
+LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
+LEFT JOIN birdSpecies ON birdSpecies.idSpecies = preserves2birdSpecies.idSpecies
+LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+GROUP BY presName;
+
+-- выборка с данными для автоматизации
+SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
+shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
+FROM birdSpecies
+JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
+JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+CROSS JOIN (
+SELECT preserves.idPres, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, 
+staffQty * staffPersonCost as staffCost, SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
+LEFT JOIN preserves2birdSpecies ON preserves2birdSpecies.idPres = preserves.idPres
+LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
+LEFT JOIN birdSpecies ON birdSpecies.idSpecies = preserves2birdSpecies.idSpecies
+LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+GROUP BY presName
+) as a ON a.idPres = preserves.idPres
+WHERE preserves.idPres = 1
+ORDER BY speciesName ASC;
+
+-- выборка для определенного вида по всем заповедникам
+SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
+shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+protectionStatus.maintenanceCost as protectStatusCost, preserves.speciesRepresQty as speciesRepresQty,
+a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
+FROM birdSpecies
+JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
+JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+CROSS JOIN (
+  SELECT preserves.idPres, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, 
+  staffQty * staffPersonCost as staffCost, SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
+  LEFT JOIN preserves2birdSpecies ON preserves2birdSpecies.idPres = preserves.idPres
+  LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
+  LEFT JOIN birdSpecies ON birdSpecies.idSpecies = preserves2birdSpecies.idSpecies
+  LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+  GROUP BY presName
+  ) as a ON a.idPres = preserves.idPres
+WHERE birdSpecies.idSpecies = 1;

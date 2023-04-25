@@ -57,4 +57,7 @@ INSERT INTO preserves2birdSpecies (idSpecies, idPres) -- все птицы ес�
 JOIN preserves);
 SELECT * FROM preserves2birdSpecies;
 
+DELETE FROM preserves2birdSpecies
+WHERE idPres = 1 AND idSpecies = 10;
+
 SELECT * FROM donates;
