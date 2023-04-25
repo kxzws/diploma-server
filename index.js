@@ -9,6 +9,7 @@ import fs from "fs";
 import {
   getAllBirds,
   getSearchedBirds,
+  getBirdByNum,
   getBirdsGenuses,
   getBirdsStatuses,
   donateToBirds,
@@ -48,6 +49,7 @@ app.use(cors());
 
 app.get("/birds/:pres/:sort", getAllBirds);
 app.get("/birds/:bird/:pres/:sort", getSearchedBirds);
+app.get("/birds/:num", getBirdByNum);
 app.get("/genuses", getBirdsGenuses);
 app.get("/statuses", getBirdsStatuses);
 app.post("/donate", donateToBirds);

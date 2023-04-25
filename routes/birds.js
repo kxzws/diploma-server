@@ -55,6 +55,27 @@ export const getSearchedBirds = (req, res) => {
     });
 };
 
+// получение птицы по номеру
+export const getBirdByNum = (req, res) => {
+  const { num } = req.params;
+
+  const sql = `SELECT idSpecies as num, speciesName as title, internationalName as interTitle,
+  shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description
+  FROM birdSpecies
+  JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
+  JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
+  WHERE birdSpecies.idSpecies = ${num};`;
+
+  connection
+    .query(sql)
+    .then((result) => {
+      res.json(result[0]);
+    })
+    .catch((err) => {
+      res.json(err);
+    });
+};
+
 // получение всех родов птиц
 export const getBirdsGenuses = (_, res) => {
   const sql = `SELECT idGenus as num, genusName FROM birdGenus;`;
