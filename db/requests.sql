@@ -87,12 +87,14 @@ GROUP BY presName;
 -- выборка с данными для автоматизации
 SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
 shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
+GROUP_CONCAT(donates.donateAmount SEPARATOR ',') as donates,
 a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
 FROM birdSpecies
 JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
 JOIN birdGenus ON birdGenus.idGenus = birdSpecies.idGenus
 JOIN preserves2birdspecies ON preserves2birdspecies.idSpecies = birdSpecies.idSpecies
 JOIN preserves ON preserves.idPres = preserves2birdspecies.idPres
+LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdspecies.idPreserves2birdSpecies
 CROSS JOIN (
 SELECT preserves.idPres, annualStateBudget, IF(SUM(donateAmount) > 0, SUM(donateAmount), 0) as donateAmount, 
 staffQty * staffPersonCost as staffCost, SUM(speciesRepresQty * maintenanceCost) as speciesCost FROM preserves
@@ -103,6 +105,7 @@ LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
 GROUP BY presName
 ) as a ON a.idPres = preserves.idPres
 WHERE preserves.idPres = 1
+GROUP BY birdSpecies.idSpecies
 ORDER BY speciesName ASC;
 
 -- выборка для определенного вида по всем заповедникам

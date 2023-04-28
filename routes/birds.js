@@ -13,6 +13,7 @@ export const getAllBirds = (req, res) => {
   const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
   shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
   protectionStatus.maintenanceCost as protectStatusCost, a.presName, preserves.speciesRepresQty as speciesRepresQty,
+  GROUP_CONCAT(donates.donateAmount SEPARATOR ',') as donates,
   a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
@@ -28,7 +29,9 @@ export const getAllBirds = (req, res) => {
     LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
     GROUP BY presName
     ) as a ON a.idPres = preserves.idPres
+  LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
   WHERE preserves.idPres = ${pres}
+  GROUP BY birdSpecies.idSpecies
   ORDER BY speciesName ${sortType};`;
 
   connection
@@ -49,6 +52,7 @@ export const getSearchedBirds = (req, res) => {
   const sql = `SELECT birdSpecies.idSpecies as num, speciesName as title, internationalName as interTitle,
   shortName as protectStatus, longName as abbr, length, weight, wingspan, birdSpecies.description as description,
   protectionStatus.maintenanceCost as protectStatusCost, a.presName, preserves.speciesRepresQty as speciesRepresQty,
+  GROUP_CONCAT(donates.donateAmount SEPARATOR ',') as donates,
   a.annualStateBudget + a.donateAmount as presIncome, a.staffCost + a.speciesCost as presExpenses
   FROM birdSpecies
   JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
@@ -64,7 +68,9 @@ export const getSearchedBirds = (req, res) => {
     LEFT JOIN protectionStatus ON protectionStatus.idPrS = birdSpecies.idPrS
     GROUP BY presName
     ) as a ON a.idPres = preserves.idPres
+  LEFT JOIN donates ON donates.idPreserves2birdSpecies = preserves2birdSpecies.idPreserves2birdSpecies
   WHERE LOWER(speciesName) REGEXP LOWER(?) AND preserves.idPres = ${pres}
+  GROUP BY birdSpecies.idSpecies
   ORDER BY speciesName ${sortType};`;
 
   connection
